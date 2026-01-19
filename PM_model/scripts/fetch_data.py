@@ -58,7 +58,15 @@ def trading_week_bounds(today_local: date) -> Tuple[date, date, date]:
     sunday = monday + timedelta(days=6)
     return monday, friday, sunday
 
+def should_fetch_now():
+    import pandas as pd
+    import exchange_calendars as ecals
+    from datetime import datetime, timezone
 
+    cal = ecals.get_calendar("XNYS")
+    now = datetime.now(timezone.utc)
+    return cal.is_open_on_minute(pd.Timestamp(now))
+    
 # -----------------------
 # Ticker selection + slug mapping
 # -----------------------
@@ -509,6 +517,10 @@ def main_part1() -> None:
         tz_name=args.tz,
         risk_free_rate=float(args.risk_free_rate),
     )
+
+    if not should_fetch_now():
+    print("[Skip] Market closed.")
+    return
 
     os.makedirs(args.out_dir, exist_ok=True)
 
